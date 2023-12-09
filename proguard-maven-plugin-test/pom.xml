@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.1.6</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <groupId>org.example</groupId>
+    <artifactId>proguard-maven-plugin-test</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.github.wvengen</groupId>
+                <artifactId>proguard-maven-plugin</artifactId>
+                <version>2.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>proguard</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <!-- 是否混淆，默认时 true -->
+                    <obfuscate>true</obfuscate>
+                    <!-- 就是输入 jar 的名称，代码混淆，就是将一个原始的 jar，生产一个混淆后的 jar -->
+                    <injar>${project.build.finalName}.jar</injar>
+                    <!-- 输出混淆后的 jar 名称，输入和输出相同，就是覆盖 -->
+                    <outjar>${project.build.finalName}-small.jar</outjar>
+                    <!-- 输出路径配置，这个路径必须包含 injar 路径中的 jar 文件 -->
+                    <outputDirectory>${project.build.directory}</outputDirectory>
+                    <!-- 指定配置文件，通常叫做 proguard.cfg，也可写在 options 中 -->
+                    <!-- <proguardInclude>${basedir}/proguard.conf</proguardInclude> -->
+                    <!-- JDK 等，没有在依赖列表中的依赖 -->
+                    <libs>
+                        <lib>${java.home}/lib/rt.jar</lib>
+                        <lib>${java.home}/lib/jsse.jar</lib>
+                    </libs>
+                    <!-- 对依赖对 jar 包进行过滤，比如：如下配置就是对 META-INF 不处理 -->
+                    <inLibsFilter>!META-INF,!META-INF/versions/**</inLibsFilter>
+                    <!-- 解决依赖过多时报错：CreateProcess error=206, The filename or extension is too long. -->
+                    <generateTemporaryConfigurationFile>true</generateTemporaryConfigurationFile>
+                    <!-- 配置混淆对一些细节选项，比如：哪些类不需要混淆，哪些需要混淆 -->
+                    <options>
+                        <!-- JDK 版本 -->
+                        <option>-target 17</option>
+                        <!-- 不做收缩 -->
+                        <option>-dontshrink</option>
+                        <!-- 不做优化 -->
+                        <option>-dontoptimize</option>
+                        <!-- 混淆类名之后，对使用 Class.forName('className') 之类的地方进行相应的替代 -->
+                        <option>-adaptclassstrings</option>
+                        <!-- 不跳过非公用类文件 -->
+                        <option>-dontskipnonpubliclibraryclasses</option>
+                        <!-- 不跳过非公用类文件的成员 -->
+                        <option>-dontskipnonpubliclibraryclassmembers</option>
+                        <!-- 混淆时不生成大小与混合的类名，避免 windows 下相互覆盖 -->
+                        <option>-dontusemixedcaseclassnames</option>
+                        <!-- 对于类成员的命名采用唯一策略，如：EmpMapper g; 那么在其他地方出现的时候变量名都是 g -->
+                        <option>-useuniqueclassmembernames</option>
+                        <!-- 不混淆所有包名 -->
+                        <option>-keeppackagenames</option>
+                        <!-- 保留参数名，因为 controller/mapper 等的参数若湿淆会导致无法接受参数，xmL 文件找不到参数 -->
+                        <option>-keepparameternames</option>
+                        <!-- 保留属性，多个屬性可以用多个 -keepattributes 配置，也可以用退号分隔，可以使用 ？* ** 通配符，或否定符! -->
+                        <option>-keepattributes Exceptions,InnerClasses,Signature,Deprecated,SourceFile,LineNumberTable,LocalVariable*Table,*Annotation*,Synthetic,EnclosingMethod</option>
+                        <!-- 避免 com.example.MyCLass.class.getResource("") 为 null，保留目录 entry -->
+                        <option>-keepdirectories</option>
+                        <!-- 保留枚举成员和方法 -->
+                        <option>-keepclassmembers enum * {*;}</option>
+                        <!-- 对所有类都不进行重命名，并指定若含有指定注解的成员不重命名 -->
+                        <option>
+                            -keep class * {
+                            @org.springframework.beans.factory.annotation.Autowired *,
+                            @org.springframework.beans.factory.annotation.Value *,
+                            @org.springframework.context.annotation.Bean *,
+                            @javax.annotation.Resource *,
+                            }
+                        </option>
+                        <!-- 保留入口 main 函数 -->
+                        <option>
+                            -keepclasseswithmembers public class * {
+                            public static void main(java.lang.String[]);
+                            }
+                        </option>
+                        <!-- mapper 层不混淆，避免 xmL 中找不到 -->
+                        <option>-keep class org.example.demo.mapper.** {*;}</option>
+                        <!-- DO、VO、DTO 的入参的属性名、响应的属性名不混淆 -->
+                        <option>-keep class org.example.demo.domain.** {*;}</option>
+                    </options>
+                </configuration>
+            </plugin>
+
+            <!-- spring boot 打包插件 -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>repackage</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

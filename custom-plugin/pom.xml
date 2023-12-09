@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.example</groupId>
+        <artifactId>demo-maven-plugin</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <!-- 需要符合 plugin 的命名规则：xxx-maven-plugin 或 maven-xxx-plugin -->
+    <artifactId>custom-maven-plugin</artifactId>
+
+    <!--
+    自定义 maven plugin 的步骤
+    1、设置 packaging 为 maven-plugin
+    2、引入需要的依赖 maven-plugin-api、maven-plugin-annotations、maven-project
+    3、使用注释或注解的方式进行开发
+    4、非必须：如果打包报错，指定 maven-plugin-plugin 的版本
+    -->
+    <packaging>maven-plugin</packaging>
+
+    <dependencies>
+
+        <!-- 核心包 -->
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <version>3.9.6</version>
+        </dependency>
+
+        <!-- 使用注解开发，需要加入此依赖 -->
+        <dependency>
+            <groupId>org.apache.maven.plugin-tools</groupId>
+            <artifactId>maven-plugin-annotations</artifactId>
+            <version>3.10.2</version>
+        </dependency>
+
+        <!-- 代表一个 maven 工程，可以使用 @Parameter 注解获取 maven 工程的配置信息 -->
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-project</artifactId>
+            <version>2.2.1</version>
+        </dependency>
+
+        <!-- 业务依赖 -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.15.1</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 生产插件的描述文件 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <version>3.10.2</version>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
